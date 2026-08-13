@@ -1,0 +1,19 @@
+---
+# ============================================================
+#  cPanel Git Version Control - Deployment Configuration
+# ============================================================
+#
+#  INSTRUCCIONES:
+#  1. Cambia "tuusuario" por tu usuario real de cPanel.
+#  2. El DEPLOYPATH debe apuntar a public_html/ o la carpeta
+#     donde vive tu aplicación en el servidor.
+#  3. Después de cada "git push", cPanel ejecutará estas tareas.
+# ============================================================
+
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/tuusuario/public_html/
+    - /bin/cp -R $REPOSITORY_DIR/. $DEPLOYPATH
+    - /bin/find $DEPLOYPATH/application/logs -type f -name "*.php" ! -name "index.html" -delete
+    - /bin/chmod 755 $DEPLOYPATH/application/logs
+    - /bin/chmod 755 $DEPLOYPATH/application/cache

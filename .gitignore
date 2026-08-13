@@ -1,0 +1,74 @@
+# ============================================================
+#  CodeIgniter - GitIgnore para cPanel Git Deployment
+# ============================================================
+
+# --- SEGURIDAD CRÍTICA: credenciales de base de datos ---
+application/config/database.php
+
+# --- Logs de CodeIgniter ---
+application/logs/*.php
+!application/logs/index.html
+
+# --- Caché de CodeIgniter ---
+application/cache/*
+!application/cache/index.html
+system/cache/*
+
+# --- Archivos de sesión PHP ---
+application/sessions/*
+
+# --- Archivos generados / temporales ---
+error_log
+*.log
+
+# --- Configuración específica del servidor (cPanel) ---
+php.ini
+.user.ini
+.htaccess.phpupgrader*
+
+# --- Archivos de directorio cPanel ---
+cgi-bin/
+
+# --- Archivos multimedia pesados (no van en el repo) ---
+*.mp4
+*.avi
+*.mov
+
+# --- PDFs generados / documentos ---
+aviso_de_privacidad_inroute.pdf
+aviso_de_privacidad_inroute_2.pdf
+
+# --- Excel generados (reportes dinámicos) ---
+excel/Reporte.xls
+
+# --- Archivos de respaldo con fecha en el nombre ---
+application/controllers/*_2021*.php
+application/controllers/*_2022*.php
+application/controllers/*_2023*.php
+application/controllers/*_2024*.php
+application/controllers/*_2025*.php
+application/controllers/*_2026*.php
+application/models/*_2021*.php
+application/models/*_2022*.php
+application/models/*_2023*.php
+application/models/*_2024*.php
+application/models/*_2025*.php
+application/models/*_2026*.php
+
+# --- Archivos sobrantes ---
+sellout.txt
+index_.html
+
+# --- Dependencias de Composer (si se instalan localmente) ---
+vendor/
+
+# --- Sistema operativo ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- IDEs ---
+.vscode/
+.idea/
+*.swp
+*.swo

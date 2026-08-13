@@ -1,0 +1,158 @@
+/*
+	En este archivo se guardan los archivos con estilos personalizados
+*/
+
+/*######### ESTA CLASE ES PARA DAR COLOR DE FONDO A LOS SEPARADORES DE LAS VISTAS ######################*/
+.elhov tr:hover { 
+    background-color: yellow;
+}
+.separatorSeccionesFormulario{
+	background: #3c8dbc;
+}
+
+/*######### ESTA CLASE ES PARA DAR COLOR DE LETRA A LOS TITULOS DE LOS SEPARADORES ######################*/
+.separatorLetraFormulario{
+	color: #fff;
+}
+
+hr {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    border: 0;
+    border-top: 1px solid #eeeeee;
+}
+
+/*######### ESTA CLASE OCULTA ELEMENTOS ######################*/
+.hideElements{
+	display:none;
+}
+
+/*######### ESTA CLASE MUESTRA ELEMENTOS ######################*/
+.showElements{
+	display:block;
+}
+
+/*######### ESTA CLASE SIRVE PARA LOS TEXTBOX  ESTEN EN MAYUSCULAS ######################*/
+.letraUpper input{
+	text-transform:uppercase;
+}
+.letraDefault input{
+  text-transform:lowercase;
+}
+
+/*######### ESTA CLASE CREA UN DIVISOR ######################*/
+.contenedorBotones{
+	padding: 15px;
+    border-bottom: 1px solid #f4f4f4;
+    border-top: 1px solid #dddddd;
+}
+
+/*######### ESTA CLASE ALINEA EL TEXTO ALA DERECHA ######################*/
+.alinearDerechaTH{
+	text-align:right;
+}
+
+/*######### ESTA CLASE ALINEA EL TEXTO ALA IZQUIERDA ######################*/
+.alinearIzquierdaTH{
+	text-align:left;
+}
+
+/*######### ESTAS CLASES DAN FORMATO ALAS TABLAS DE LOS DETALLADOS ######################*/
+table.detalleTables{
+	width: 100%;	
+}
+/*.detalleTables tbody tr:nth-child(even) {background-color: #9ba0a5;}*/
+/*.detalleTables tr:hover {background-color: #f5f5f5}*/
+.detalleTables thead th {
+    background-color: #337ab7;
+    color: white;
+}
+/*######### ESTAS CLASES DAN FORMATO ALAS TABLAS DE LOS DETALLADOS DE CATALOGO######################*/
+table.detalleTables2{
+	width: 100%;
+	border: 0px;
+  	border-collapse: collapse;
+    border-spacing: 0px 0px;
+}
+.detalleTables2 thead th {
+    background-color: #337ab7;
+    color: white;
+    border: 0px;
+  	border-collapse: collapse;
+    border-spacing: 0px 0px;
+}
+.detalleTables2 tbody tr {
+	background-color: #FFFFFF;
+	border: 0px;
+  	border-collapse: collapse;
+    border-spacing: 0px 0px;
+
+}
+/*.detalleTables2 tbody tr:nth-child(even) {
+	background-color: #9ba0a5;
+	border: 1px solid #000;
+  	border-collapse: collapse;
+}*/
+/*.detalleTables2 td:hover {background-color: #99D4FD}*/
+.detalleTables2 tbody th {
+border: 0px;
+  	border-collapse: collapse;
+    border-spacing: 0px 0px;
+
+}
+.detalleTables2 tbody td {
+border: 0px;
+  	border-collapse: collapse;
+    border-spacing: 0px 0px;
+}
+/*######### ESTAS CLASES DAN FORMATO ALAS TABLAS DE LOS DETALLADOS DE CATALOGO######################*/
+table.detalleTablesMini{
+	width: 100%;
+	border: 0px;
+  	border-collapse: collapse;
+}
+
+
+.sinautoajuste td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+
+/*.detalleTablesMini td:hover {background-color: #99D4FD}*/
+.detalleTablesMini tr{
+	border: 0px;
+  	border-collapse: collapse;
+}
+.detalleTablesMini td {
+border: 0px;
+    border-collapse: collapse;
+
+}
+.loadingtable:before {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(129, 207, 224,0.2) center center no-repeat url("../images/loading1.gif");
+}
+/*######### ESTAS CLASES DAN FORMATO ALAS TABLAS DE TANQUES ######################*/
+    .tanque1 {
+        text-align: center;
+        border: 1px solid #000;
+
+    }
+    .tanque2 {
+        text-align: center;
+         color: #000;
+         border: 1px solid #000;
+         font-style: italic;
+    }
