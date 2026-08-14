@@ -4,15 +4,19 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 /**
  * Controlador de migraciones CI3.
  *
- * Acceso permitido:
- *   - CLI siempre:  php index.php Migrate run
- *   - Web:          solo desde 127.0.0.1 (localhost)
+ * Acceso: CLI siempre | Web solo desde 127.0.0.1 (localhost).
  *
- * Métodos disponibles:
- *   run            Ejecuta todas las migraciones pendientes
- *   version        Muestra la versión actual de la BD
- *   rollback       Revierte la última migración aplicada
- *   list_all       Lista todas las migraciones y su estado
+ * Métodos:
+ *   run       → ejecuta todas las migraciones pendientes
+ *   version   → muestra la versión actual de la BD
+ *   rollback  → revierte la última migración aplicada
+ *   list_all  → lista todas las migraciones con su estado
+ *
+ * Uso CLI:
+ *   php index.php Migrate run
+ *   php index.php Migrate version
+ *   php index.php Migrate rollback
+ *   php index.php Migrate list_all
  */
 class Migrate extends CI_Controller {
 
@@ -23,53 +27,63 @@ class Migrate extends CI_Controller {
         $this->load->library('migration');
     }
 
-    // Rechaza acceso web que no sea desde localhost
     private function _check_access()
     {
         if (is_cli()) return;
 
         $allowed = ['127.0.0.1', '::1'];
         if ( ! in_array($this->input->ip_address(), $allowed)) {
-            show_error('Acceso restringido. Usa CLI en el servidor: php index.php Migrate run', 403);
+            show_error('Acceso restringido. Solo CLI o localhost. Usa: php index.php Migrate run', 403);
         }
     }
 
-    /** Alias de run() para acceso por defecto */
     public function index()
     {
         $this->run();
     }
 
-    /** Ejecuta todas las migraciones pendientes hasta la última */
+    /** Ejecuta todas las migraciones pendientes */
     public function run()
     {
-        if ($this->migration->latest() === FALSE) {
+        $before = $this->_current_version();
+        $result = $this->migration->latest();
+
+        if ($result === FALSE) {
             $this->_print('[ERROR] ' . $this->migration->error_string());
             return;
         }
-        $this->_print('[OK] Migraciones ejecutadas. Version actual: ' . $this->migration->get_version());
+
+        $after = $this->_current_version();
+
+        if ($before === $after) {
+            $this->_print('[OK] No hay migraciones pendientes. Version actual: ' . $after);
+        } else {
+            $this->_print('[OK] Migraciones ejecutadas.');
+            $this->_print('     Version anterior : ' . $before);
+            $this->_print('     Version actual   : ' . $after);
+        }
     }
 
     /** Muestra la versión actual registrada en la BD */
     public function version()
     {
-        $this->_print('Version actual de la BD: ' . $this->migration->get_version());
+        $this->_print('Version actual de la BD: ' . $this->_current_version());
     }
 
-    /** Revierte la última migración aplicada */
+    /** Revierte la última migración aplicada (ejecuta down()) */
     public function rollback()
     {
         $migrations = $this->_get_migration_list();
-        $current    = (string) $this->migration->get_version();
+        $current    = (string) $this->_current_version();
 
         if (empty($migrations) || $current === '0') {
             $this->_print('No hay migraciones que revertir (version actual: 0).');
             return;
         }
 
+        // Busca la versión inmediatamente anterior a la actual
         $previous = 0;
         $keys     = array_keys($migrations);
-
         for ($i = count($keys) - 1; $i >= 0; $i--) {
             if ((string) $keys[$i] === $current) {
                 $previous = ($i > 0) ? $keys[$i - 1] : 0;
@@ -77,41 +91,54 @@ class Migrate extends CI_Controller {
             }
         }
 
-        if ($this->migration->version($previous) === FALSE) {
+        $this->_print('Revirtiendo desde version ' . $current . ' hacia ' . $previous . ' ...');
+
+        $result = $this->migration->version($previous);
+
+        if ($result === FALSE) {
             $this->_print('[ERROR] Rollback fallido: ' . $this->migration->error_string());
             return;
         }
-        $this->_print('[OK] Rollback completado. Version actual: ' . $this->migration->get_version());
+        $this->_print('[OK] Rollback completado. Version actual: ' . $this->_current_version());
     }
 
-    /** Lista todas las migraciones con su estado (aplicada / pendiente) */
+    /** Lista todas las migraciones con estado aplicada/pendiente */
     public function list_all()
     {
         $migrations = $this->_get_migration_list();
-        $current    = (int) $this->migration->get_version();
+        $current    = (string) $this->_current_version();
 
         if (empty($migrations)) {
-            $this->_print('No se encontraron archivos de migracion en ' . APPPATH . 'migrations/');
+            $this->_print('No se encontraron archivos de migracion en:');
+            $this->_print('  ' . APPPATH . 'migrations/');
             return;
         }
 
-        $this->_print('Migraciones disponibles (version BD actual: ' . $current . '):');
-        $this->_print(str_repeat('-', 60));
+        $this->_print('Migraciones (version BD actual: ' . $current . '):');
+        $this->_print(str_repeat('-', 65));
         foreach ($migrations as $ver => $name) {
-            $estado = ($ver <= $current) ? '[APLICADA ]' : '[PENDIENTE]';
-            $cursor = ($ver === $current) ? ' <-- ACTUAL' : '';
+            $aplicada = ($current !== '0' && (string) $ver <= $current);
+            $estado   = $aplicada ? '[APLICADA ]' : '[PENDIENTE]';
+            $cursor   = ((string) $ver === $current) ? ' <-- ACTUAL' : '';
             $this->_print("  {$estado} {$ver}_{$name}{$cursor}");
         }
     }
 
-    // Devuelve array [version => nombre] de todos los archivos en migrations/
+    // Lee la version actual directamente de la tabla migrations (BIGINT)
+    private function _current_version()
+    {
+        $row = $this->db->select('version')->get('migrations')->row();
+        return $row ? (string) $row->version : '0';
+    }
+
+    // Devuelve array [timestamp => nombre] ordenado ascendente
     private function _get_migration_list()
     {
         $result = [];
         foreach (glob(APPPATH . 'migrations/*_*.php') as $file) {
             $name = basename($file, '.php');
-            if (preg_match('/^(\d+)_(.+)$/', $name, $m)) {
-                $result[(int) $m[1]] = $m[2];
+            if (preg_match('/^(\d{14})_(.+)$/', $name, $m)) {
+                $result[$m[1]] = $m[2];
             }
         }
         ksort($result);
