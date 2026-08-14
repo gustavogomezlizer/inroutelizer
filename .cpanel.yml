@@ -12,7 +12,7 @@
 
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/tuusuario/public_html/
+    - export DEPLOYPATH=/home/inroutem/public_html/
     - /bin/cp -R $REPOSITORY_DIR/. $DEPLOYPATH
     - /bin/find $DEPLOYPATH/application/logs -type f -name "*.php" ! -name "index.html" -delete
     - /bin/chmod 755 $DEPLOYPATH/application/logs
