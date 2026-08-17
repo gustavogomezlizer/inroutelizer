@@ -10,7 +10,7 @@ $corte=VERIFICARPERFILFUNCION("Reportes","hacerCorte",$this->session->userdata('
 			<div class="page-header">
 				<h1>
 					<strong>In Route</strong> <i>Sofware de Venta</i>
-					<small><i class="ace-icon fa fa-angle-double-right"></i>Reportes / Pedidos - Preventassssssssssss</small>
+					<small><i class="ace-icon fa fa-angle-double-right"></i>Reportes / Pedidos - Preventasss</small>
 				</h1>				
 			</div>
 						
