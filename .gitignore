@@ -62,6 +62,9 @@ index_.html
 # --- Dependencias de Composer (si se instalan localmente) ---
 vendor/
 
+/system/cache/*
+!/system/cache/index.html
+
 # --- Sistema operativo ---
 .DS_Store
 Thumbs.db
