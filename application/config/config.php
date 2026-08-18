@@ -36,7 +36,7 @@ else
 }*/
 
 if (isset($_SERVER['HTTP_HOST'])) {
-    $config['base_url'] = 'https://' . $_SERVER['HTTP_HOST'] . '/';
+    $config['base_url'] = 'http://' . $_SERVER['HTTP_HOST'] . '/';
 } else {
     // Fallback for CLI scripts
     $config['base_url'] = 'https://localhost/';

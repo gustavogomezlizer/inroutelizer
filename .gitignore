@@ -5,6 +5,8 @@
 # --- SEGURIDAD CRÍTICA: credenciales de base de datos ---
 application/config/database.php
 
+application/config/config.php
+
 # --- Logs de CodeIgniter ---
 application/logs/*.php
 !application/logs/index.html
@@ -75,3 +77,4 @@ desktop.ini
 .idea/
 *.swp
 *.swo
+application/config/config.php
