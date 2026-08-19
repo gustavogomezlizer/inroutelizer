@@ -44,7 +44,7 @@ $liberar=VERIFICARPERFILFUNCION("Catalogos","liberaUsuario",$this->session->user
 											<div class="col-sm-2">
 												<select id="cmbFiltroSucursal" name="sucursal" class="form-control">
 													<?php if(ISMULTISUCURSAL()) { ?>
-														<!--<option value=0 selected>TODAS</option>-->
+														<option value=0 selected>TODAS</option>
 														<?php foreach (GETLISTASUCURSALES() as $item) { ?>
 															<option value=<?php echo $item->id; ?>><?php echo $item->sucursal; ?></option>
 														<?php } ?>
@@ -195,7 +195,7 @@ $liberar=VERIFICARPERFILFUNCION("Catalogos","liberaUsuario",$this->session->user
 				"text": "<i class='fa fa-file-excel-o bigger-110 green'></i> <span class='hidden'>Export to Excel</span>",
 				"className": "btn btn-white btn-primary btn-bold",
 				"titleAttr": "LISTADO",
-				"title": 'Listado - Usuarios',
+				"title": 'Listado - Inventario',
 				"exportOptions": {
 						columns: [ i_fecha, i_sucursal, i_codigo, i_producto, i_cantidad, i_cantidaddisponible ]
 					}

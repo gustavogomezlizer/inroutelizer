@@ -1514,11 +1514,21 @@ class CatalogosModel extends CI_Model {
 
 	public function getListaInventario($data)
 	{
-		$query = $this->dbinfo->query("SELECT *,
-		(SELECT cs.sucursal FROM cat_sucursales cs WHERE cs.id = ir.`idsucursal`) AS sucursal
-		FROM inventario_real ir
-		WHERE ir.idsucursal = '$data[idsucursal]'
-		ORDER BY ir.nombre")->result();
+		if($data["idsucursal"] == 0)
+		{
+			$query = $this->dbinfo->query("SELECT *,
+			(SELECT cs.sucursal FROM cat_sucursales cs WHERE cs.id = ir.`idsucursal`) AS sucursal
+			FROM inventario_real ir
+			ORDER BY ir.nombre")->result();
+		}
+		else
+		{
+			$query = $this->dbinfo->query("SELECT *,
+			(SELECT cs.sucursal FROM cat_sucursales cs WHERE cs.id = ir.`idsucursal`) AS sucursal
+			FROM inventario_real ir
+			WHERE ir.idsucursal = '$data[idsucursal]'
+			ORDER BY ir.nombre")->result();
+		}
 
 		return $query;
 	}
