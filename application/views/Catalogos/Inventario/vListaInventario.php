@@ -19,7 +19,7 @@ $liberar=VERIFICARPERFILFUNCION("Catalogos","liberaUsuario",$this->session->user
 								<strong>In Route</strong> <i>Sofware de Venta</i>
 								<small>
 									<i class="ace-icon fa fa-angle-double-right"></i>
-									Catalogos / <?php echo $vista; ?>
+									Catalogos // <?php echo $vista; ?>
 								</small>
 							</h1>
 						</div><!-- /.page-header -->
