@@ -223,7 +223,7 @@ class CatalogosModel extends CI_Model {
 			INNER JOIN cat_zonas ON clientes.zona=cat_zonas.id 
 			INNER JOIN cat_sucursales ON clientes.sucursal=cat_sucursales.id".$wheresucursal;*/
 
-			$consulta="SELECT clientes.*,
+			/*$consulta="SELECT clientes.*,
 			clientes.zona AS zonaId,
 			fnGetProveedorCliente(clientes.id) AS proveedores, 
 			CONCAT_WS(' ', clientes.calle, clientes.numero, clientes.colonia, clientes.ciudad) AS domicilio,
@@ -234,7 +234,33 @@ class CatalogosModel extends CI_Model {
 			IFNULL((SELECT 'SI' FROM pedidos sub WHERE sub.idcliente = clientes.`id` AND sub.canal = 'B2B_APP' LIMIT 1), 'NO') AS cliente_digitalizado
 			FROM clientes 
 			INNER JOIN cat_zonas ON clientes.zona=cat_zonas.id 
-			INNER JOIN cat_sucursales ON clientes.sucursal=cat_sucursales.id".$wheresucursal;
+			INNER JOIN cat_sucursales ON clientes.sucursal=cat_sucursales.id".$wheresucursal;*/
+
+			$consulta="SELECT clientes.*,
+			clientes.zona AS zonaId,
+			GROUP_CONCAT(DISTINCT cat_proveedor.nombre ORDER BY cat_proveedor.nombre SEPARATOR ',') AS proveedores,
+			CONCAT_WS(' ', clientes.calle, clientes.numero, clientes.colonia, clientes.ciudad) AS domicilio,
+			IF(clientes.status=1,'SI', 'NO') AS status2,
+			ccc.`clasificacion` AS clasificacion_cliente,
+			cat_sucursales.sucursal, 
+			cat_zonas.zona,
+			IF(pedidos_b2b.idcliente IS NULL, 'NO', 'SI') AS cliente_digitalizado
+			FROM clientes 
+			INNER JOIN cat_zonas ON clientes.zona=cat_zonas.id 
+			INNER JOIN cat_sucursales ON clientes.sucursal=cat_sucursales.id
+			LEFT JOIN cat_clasificacion_cliente ccc ON clientes.`clasificacion` = ccc.`id`
+			LEFT JOIN asi_cliente_proveedor
+				ON asi_cliente_proveedor.cliente = clientes.id
+				AND asi_cliente_proveedor.status = 1
+
+			LEFT JOIN cat_proveedor
+				ON cat_proveedor.id = asi_cliente_proveedor.proveedor
+			LEFT JOIN (
+				SELECT DISTINCT idcliente
+				FROM pedidos
+				WHERE canal = 'B2B_APP'
+			) pedidos_b2b
+				ON pedidos_b2b.idcliente = clientes.id".$wheresucursal . " GROUP BY clientes.id";
 		/*}
 		else{
 			$consulta="SELECT clientes.id,clientes.codigo,clientes.nombre,clientes.calle,clientes.numero,
