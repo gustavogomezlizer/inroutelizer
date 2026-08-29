@@ -1561,7 +1561,7 @@ public function getModulos()
 
 		$impuesto = "p.ieps";
 
-		if(GETEMPRESA() == "02271106")
+		if(GETEMPRESA() == "20240617")
 		{
 			$impuesto = "p.iva";
 		}
@@ -1584,7 +1584,7 @@ public function getModulos()
 			SELECT p.nombre_sucursal, p.idsucursal, p.iditem, p.tipo, IF(tipo='preventa', (cantidad_entregado - cantidad_rechazado), (cantidad_entregado - cantidad_rechazado) * -1) AS cantidad_real, IF($impuesto = 0, 0, (($impuesto/100)+1)) AS ieps2, precio, IF($impuesto = 0, precio, (precio / (SELECT ieps2))) AS precio_simpuesto, costo, IF($impuesto = 0, costo, (costo / (SELECT ieps2))) AS costouni_simpuesto,
 			(SELECT cp.proveedor FROM cat_productos cp WHERE cp.id = p.iditem) AS proveedor
 			FROM vwInformacionGeneralPedidos p
-			WHERE p.status_principal = 1 AND p.status_detalle = 1 AND p.fecha BETWEEN '$data[fecha_inicio]' AND '$data[fecha_final]' AND FIND_IN_SET(p.tipo, '$data[tipo]'))
+			WHERE p.status_principal = 1 AND p.status_detalle = 1 AND p.corte > 0 AND p.fecha BETWEEN '$data[fecha_inicio]' AND '$data[fecha_final]' AND FIND_IN_SET(p.tipo, '$data[tipo]'))
 			AS datos
 			WHERE FIND_IN_SET(datos.proveedor, '$data[negocio]')
 			GROUP BY datos.idsucursal, datos.tipo) AS datos

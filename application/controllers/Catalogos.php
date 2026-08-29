@@ -1429,7 +1429,7 @@ public function saveEditarProducto(){
 		}
 
 		//CLIENTES
-		$resultado = $this->CatalogosModel->sincronizarClientes($productos);
+		//$resultado = $this->CatalogosModel->sincronizarClientes($productos);
 
 		//PRODUCTOS
 		//$resultado = $this->CatalogosModel->sincronizarProductos($productos);
@@ -1441,7 +1441,7 @@ public function saveEditarProducto(){
 		//$resultado = $this->CatalogosModel->importarVentas($productos);
 
 		//PEDIDOS DETALLE
-		//$resultado = $this->CatalogosModel->importarVentasDetalle($productos);
+		$resultado = $this->CatalogosModel->importarVentasDetalle($productos);
 
 		echo json_encode([
 			"status" => true,

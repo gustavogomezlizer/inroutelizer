@@ -2529,7 +2529,7 @@ public function getActualizarFecha2(){
 		];
 	}
 
-	public function importarVentas($productos)
+	/*public function importarVentas($productos)
 	{
 		$insertados = 0;
 		$actualizados = 0;
@@ -2567,6 +2567,8 @@ public function getActualizarFecha2(){
 			$producto["fecharegistro"] = $producto["fecha"] . " " . date("H:i:s");
 			$producto["canal"] = "NON-BEES";
 			$producto["estatusbees"] = 'DELIVERED';
+			$producto["subidobees"] = '1';
+			$producto["corte"] = '-2';
 
 			unset($producto["sucursal"]);
 
@@ -2578,12 +2580,12 @@ public function getActualizarFecha2(){
 			print_r($producto);
 			echo "</pre>";*/
 
-			if ($query->num_rows() > 0)
+			/*if ($query->num_rows() > 0)
 			{
 				// UPDATE
 
-				$this->dbinfo->where("folio", $producto["folio"]);
-				$this->dbinfo->update("pedidos", $producto);
+				//$this->dbinfo->where("folio", $producto["folio"]);
+				//$this->dbinfo->update("pedidos", $producto);
 
 				$actualizados++;
 			}
@@ -2605,6 +2607,473 @@ public function getActualizarFecha2(){
 			"insertados" => $insertados,
 			"actualizados" => $actualizados
 		];
+	}*/
+
+	/*
+	* Construye una clausula IN() escapando los valores
+	* manualmente con escape().
+	*
+	* Se usa en lugar de where_in() porque cuando hay miles de
+	* valores, _compile_wh() del Query Builder incrusta toda la
+	* lista dentro de un patron de regex y PCRE falla con
+	* "regular expression is too large".
+	*/
+
+	private function clausulaIn($campo, $valores)
+	{
+		$valores = array_values(array_unique($valores));
+
+		if (empty($valores))
+		{
+			return '';
+		}
+
+		$escapados = [];
+
+		foreach ($valores as $valor) {
+			$escapados[] = $this->dbinfo->escape($valor);
+		}
+
+		return $campo . ' IN(' . implode(',', $escapados) . ')';
+	}
+
+	public function importarVentas($productos)
+	{
+		$insertados = 0;
+		$actualizados = 0;
+		$contador = 0;
+
+		if (empty($productos))
+		{
+			return [
+				'insertados' => 0,
+				'actualizados' => 0
+			];
+		}
+
+		/*
+		* ==========================================================
+		* 1. EXTRAER LAS CLAVES UNICAS DEL ARCHIVO Y CARGAR RUTAS
+		* ==========================================================
+		*
+		* En lugar de cargar los catalogos completos en memoria,
+		* solo se consultan las filas que el archivo necesita.
+		*
+		* TRIM() conserva la semantica original:
+		* la comparacion siempre fue contra claves sin espacios.
+		*/
+
+		$rutasNombres = [];
+		$clientesCodigos = [];
+		$sucursalesNombres = [];
+
+		foreach ($productos as $producto) {
+			$rutasNombres[trim($producto['ruta'])] = true;
+			$clientesCodigos[trim($producto['codigocliente'])] = true;
+			$sucursalesNombres[trim($producto['sucursal'])] = true;
+		}
+
+		$rutasMap = [];
+
+		$rutas = $this->dbinfo
+			->select('id, ruta, chofer')
+			->where($this->clausulaIn('TRIM(ruta)', array_keys($rutasNombres)), null, false)
+			->get('cat_rutas')
+			->result();
+
+		$choferesIds = [];
+
+		foreach ($rutas as $ruta) {
+			$rutasMap[trim($ruta->ruta)] = $ruta;
+			$choferesIds[$ruta->chofer] = true;
+		}
+
+
+		/*
+		* ==========================================================
+		* 2. CARGAR SOLO LOS USUARIOS CHOFER DE ESAS RUTAS
+		* ==========================================================
+		*/
+
+		$usuariosMap = [];
+
+		if (!empty($choferesIds)) {
+
+			$usuarios = $this->db
+				->select('id, usuario')
+				->where($this->clausulaIn('id', array_keys($choferesIds)), null, false)
+				->get('usuarios')
+				->result();
+
+			foreach ($usuarios as $usuario) {
+				$usuariosMap[$usuario->id] = $usuario;
+			}
+		}
+
+
+		/*
+		* ==========================================================
+		* 3. CARGAR SOLO LOS CLIENTES DEL ARCHIVO
+		* ==========================================================
+		*/
+
+		$clientesMap = [];
+
+		$clientes = $this->dbinfo
+			->select('id, codigo, nombre')
+			->where($this->clausulaIn('TRIM(codigo)', array_keys($clientesCodigos)), null, false)
+			->get('clientes')
+			->result();
+
+		foreach ($clientes as $cliente) {
+			$clientesMap[trim($cliente->codigo)] = $cliente;
+		}
+
+
+		/*
+		* ==========================================================
+		* 4. CARGAR SOLO LAS SUCURSALES DEL ARCHIVO
+		* ==========================================================
+		*/
+
+		$sucursalesMap = [];
+
+		$sucursales = $this->dbinfo
+			->select('id, sucursal')
+			->where($this->clausulaIn('TRIM(sucursal)', array_keys($sucursalesNombres)), null, false)
+			->get('cat_sucursales')
+			->result();
+
+		foreach ($sucursales as $sucursal) {
+			$sucursalesMap[trim($sucursal->sucursal)] = $sucursal;
+		}
+
+
+		/*
+		* ==========================================================
+		* 5. OBTENER LOS FOLIOS QUE YA EXISTEN
+		* ==========================================================
+		*/
+
+		$folios = [];
+
+		foreach ($productos as $producto) {
+
+			if (!empty($producto['folio'])) {
+				$folios[] = $producto['folio'];
+			}
+		}
+
+		$folios = array_unique($folios);
+
+		$foliosExistentes = [];
+
+		if (!empty($folios)) {
+
+			$existentes = $this->dbinfo
+				->select('id, folio')
+				->where($this->clausulaIn('folio', $folios), null, false)
+				->get('pedidos')
+				->result();
+
+			/*
+			* Creamos:
+			*
+			* $foliosExistentes[folio] = id
+			*
+			* Ejemplo:
+			*
+			* $foliosExistentes['2605251024'] = 15001;
+			*/
+
+			foreach ($existentes as $pedido) {
+				$foliosExistentes[$pedido->folio] = $pedido->id;
+			}
+		}
+
+
+		/*
+		* ==========================================================
+		* 6. PREPARAR INSERTS Y UPDATES
+		* ==========================================================
+		*/
+
+		$ventasInsertar = [];
+		$ventasActualizar = [];
+
+
+		/*
+		* ==========================================================
+		* 7. PROCESAR PRODUCTOS
+		* ==========================================================
+		*/
+
+		foreach ($productos as $producto)
+		{
+
+			/*
+			* ------------------------------------------------------
+			* RUTA
+			* ------------------------------------------------------
+			*/
+
+			$rutanombre = trim($producto['ruta']);
+
+			//if (!isset($rutasMap[$rutanombre])) {continue;}
+
+			$inforuta = $rutasMap[$rutanombre];
+
+
+			/*
+			* ------------------------------------------------------
+			* USUARIO
+			* ------------------------------------------------------
+			*/
+
+			$idChofer = $inforuta->chofer;
+
+			//if (!isset($usuariosMap[$idChofer])) {continue;}
+
+			$infousuario = $usuariosMap[$idChofer];
+
+
+			/*
+			* ------------------------------------------------------
+			* CLIENTE
+			* ------------------------------------------------------
+			*/
+
+			$codigoCliente = trim($producto['codigocliente']);
+
+			//if (!isset($clientesMap[$codigoCliente])) {continue;}
+
+			$infocliente = $clientesMap[$codigoCliente] ? $clientesMap[$codigoCliente] : (object) ['id' => 9999999, 'nombre' => $producto['cliente']];
+
+
+			/*
+			* ------------------------------------------------------
+			* SUCURSAL
+			* ------------------------------------------------------
+			*/
+
+			$nombreSucursal = trim($producto['sucursal']);
+
+			//if (!isset($sucursalesMap[$nombreSucursal])) {continue;}
+
+			$infosucursal = $sucursalesMap[$nombreSucursal];
+
+
+			/*
+			* ------------------------------------------------------
+			* PREPARAR DATOS
+			* ------------------------------------------------------
+			*/
+
+			$producto['idusuario'] = $infousuario->id;
+			$producto['usuario'] = $infousuario->usuario;
+
+			$producto['idcliente'] = $infocliente->id;
+			$producto['cliente'] = $infocliente->nombre;
+
+
+			/*
+			* FECHA
+			*/
+
+			$fecha = DateTime::createFromFormat('d/m/Y',$producto['fecha']);
+
+			//if (!$fecha) {continue;}
+
+			$producto['fecha'] = $fecha->format('Y-m-d');
+
+
+			/*
+			* TIPO
+			*/
+
+			$producto['tipo'] = strtoupper($producto['tipo']);
+
+
+			/*
+			* VALORES POR DEFECTO
+			*/
+
+			$producto['facturado'] = 0;
+			$producto['credito'] = 0;
+
+			$producto['ruta'] = $inforuta->id;
+
+			$producto['idsucursal'] = $infosucursal->id;
+
+
+			/*
+			* FECHA CREACIÓN
+			*
+			* Se conserva la lógica original:
+			* cada registro aumenta un segundo.
+			*/
+
+			$fechabase = strtotime($producto['fecha'] . ' 00:00:00');
+
+			$producto['fechacreacion'] = date(
+				'Y-m-d H:i:s',
+				$fechabase + $contador
+			);
+
+
+			/*
+			* FECHA REGISTRO
+			*/
+
+			$producto['fecharegistro'] =
+				$producto['fecha'] . ' ' . date('H:i:s');
+
+
+			/*
+			* BEES
+			*/
+
+			$producto['canal'] = 'NON-BEES';
+			$producto['estatusbees'] = 'DELIVERED';
+			$producto['subidobees'] = 1;
+			$producto['corte'] = -2;
+
+
+			/*
+			* Ya no necesitamos el nombre de sucursal.
+			*/
+
+			unset($producto['sucursal']);
+
+
+			/*
+			* ------------------------------------------------------
+			* ¿EXISTE EL FOLIO?
+			* ------------------------------------------------------
+			*/
+
+			$folio = $producto['folio'];
+
+			if (isset($foliosExistentes[$folio]))
+			{
+
+				/*
+				* EXISTE
+				*
+				* Guardamos el ID para actualizar posteriormente.
+				*/
+
+				$idPedido = $foliosExistentes[$folio];
+
+				$producto['id'] = $idPedido;
+
+				$ventasActualizar[] = $producto;
+
+				$actualizados++;
+
+			}
+			else
+			{
+
+				/*
+				* NO EXISTE
+				*
+				* Lo agregamos para INSERT.
+				*/
+
+				$ventasInsertar[] = $producto;
+
+				$insertados++;
+
+
+				/*
+				* Muy importante:
+				*
+				* Lo agregamos al array para que si el mismo
+				* folio aparece otra vez dentro del archivo,
+				* no se intente insertar dos veces.
+				*/
+
+				$foliosExistentes[$folio] = true;
+			}
+
+
+			$contador++;
+		}
+
+
+		/*
+		* ==========================================================
+		* 8. INSERTAR NUEVOS PEDIDOS EN BLOQUES
+		* ==========================================================
+		*
+		* Todo dentro de una transaccion:
+		* si algo falla, no quedan datos parciales en la BD.
+		*/
+
+		if (!empty($ventasInsertar) || !empty($ventasActualizar))
+		{
+
+			$this->dbinfo->trans_start();
+
+
+			if (!empty($ventasInsertar))
+			{
+
+				$bloquesInsertar = array_chunk(
+					$ventasInsertar,
+					500
+				);
+
+				foreach ($bloquesInsertar as $bloque)
+				{
+
+					$this->dbinfo->insert_batch(
+						'pedidos',
+						$bloque
+					);
+				}
+			}
+
+
+			/*
+			* ==========================================================
+			* 9. ACTUALIZAR PEDIDOS EXISTENTES EN BLOQUES
+			* ==========================================================
+			*
+			* CodeIgniter 3 SI tiene update_batch(): genera una sola
+			* consulta por bloque (CASE WHEN) en lugar de un UPDATE
+			* por fila.
+			*
+			* El campo 'id' se usa como clave del WHERE y CI lo
+			* excluye automaticamente del SET.
+			*/
+
+			if (!empty($ventasActualizar))
+			{
+
+				$this->dbinfo->update_batch(
+					'pedidos',
+					$ventasActualizar,
+					'id',
+					500
+				);
+			}
+
+			$this->dbinfo->trans_complete();
+		}
+
+
+		/*
+		* ==========================================================
+		* 10. RESULTADO
+		* ==========================================================
+		*/
+
+		return [
+			'insertados' => $insertados,
+			'actualizados' => $actualizados
+		];
 	}
 
 	public function importarVentasDetalle($productos)
@@ -2612,14 +3081,149 @@ public function getActualizarFecha2(){
 		$insertados = 0;
 		$actualizados = 0;
 
+		if (empty($productos))
+		{
+			return [
+				'insertados' => 0,
+				'actualizados' => 0
+			];
+		}
+
+		/*
+		* ==========================================================
+		* 1. EXTRAER LAS CLAVES UNICAS DEL ARCHIVO
+		* ==========================================================
+		*
+		* El codigo original hacía 3 queries de catalogos + 1 de
+		* existencia POR CADA FILA. Ahora todo se resuelve con
+		* pocas consultas por lote y los escrituras van en bloques.
+		*/
+
+		$nombresCategorias = [];
+		$codigosProductos = [];
+		$foliosPedidos = [];
+
+		foreach ($productos as $producto) {
+			$nombresCategorias[$producto['clasificacion']] = true;
+			$codigosProductos[$producto['codigoproducto']] = true;
+			$foliosPedidos[$producto['folio']] = true;
+		}
+
+
+		/*
+		* ==========================================================
+		* 2. CARGAR CATEGORIAS DEL ARCHIVO
+		* ==========================================================
+		*
+		* Primer resultado gana, igual que ->row() original.
+		*/
+
+		$categoriasMap = [];
+
+		$categorias = $this->dbinfo
+			->select('id, nombre')
+			->where($this->clausulaIn('nombre', array_keys($nombresCategorias)), null, false)
+			->get('cat_clasificacionproductos')
+			->result();
+
+		foreach ($categorias as $categoria) {
+			if (!isset($categoriasMap[$categoria->nombre])) {
+				$categoriasMap[$categoria->nombre] = $categoria;
+			}
+		}
+
+
+		/*
+		* ==========================================================
+		* 3. CARGAR PRODUCTOS DEL ARCHIVO
+		* ==========================================================
+		*/
+
+		$productosMap = [];
+
+		$catProductos = $this->dbinfo
+			->select('id, codigo, proveedor, nombre, costo, iva, ieps')
+			->where($this->clausulaIn('codigo', array_keys($codigosProductos)), null, false)
+			->get('cat_productos')
+			->result();
+
+		foreach ($catProductos as $catProducto) {
+			if (!isset($productosMap[$catProducto->codigo])) {
+				$productosMap[$catProducto->codigo] = $catProducto;
+			}
+		}
+
+
+		/*
+		* ==========================================================
+		* 4. CARGAR LOS PEDIDOS DEL ARCHIVO
+		* ==========================================================
+		*/
+
+		$pedidosMap = [];
+
+		$pedidos = $this->dbinfo
+			->select('id, folio, fechacreacion, fecharegistro')
+			->where($this->clausulaIn('folio', array_keys($foliosPedidos)), null, false)
+			->get('pedidos')
+			->result();
+
+		foreach ($pedidos as $pedido) {
+			if (!isset($pedidosMap[$pedido->folio])) {
+				$pedidosMap[$pedido->folio] = $pedido;
+			}
+		}
+
+
+		/*
+		* ==========================================================
+		* 5. DETALLES YA EXISTENTES DE ESOS PEDIDOS
+		* ==========================================================
+		*
+		* $detallesExistentes['idpedido|iditem'] = id
+		*/
+
+		$detallesExistentes = [];
+		$idsPedidos = [];
+
+		foreach ($pedidos as $pedido) {
+			$idsPedidos[$pedido->id] = true;
+		}
+
+		if (!empty($idsPedidos)) {
+
+			$existentes = $this->dbinfo
+				->select('id, idpedido, iditem')
+				->where($this->clausulaIn('idpedido', array_keys($idsPedidos)), null, false)
+				->get('pedidos_detalle')
+				->result();
+
+			foreach ($existentes as $existente) {
+				$claveDetalle = $existente->idpedido . '|' . $existente->iditem;
+
+				if (!isset($detallesExistentes[$claveDetalle])) {
+					$detallesExistentes[$claveDetalle] = $existente->id;
+				}
+			}
+		}
+
+
+		/*
+		* ==========================================================
+		* 6. PREPARAR INSERTS Y UPDATES CON LAS MISMAS REGLAS
+		*    POR FILA DEL CODIGO ORIGINAL
+		* ==========================================================
+		*/
+
+		$detallesInsertar = [];
+		$detallesActualizar = [];
+		$detallesActualizarNuevo = [];
+
 		foreach ($productos as $producto)
 		{
-			$categorianombre = $producto["clasificacion"];
-			$codigoproducto = $producto["codigoproducto"];
-
-			$infocategoria = $this->dbinfo->query("SELECT * FROM cat_clasificacionproductos WHERE nombre = '$categorianombre'")->row();
-			$infoproducto = $this->dbinfo->query("SELECT * FROM cat_productos WHERE codigo = '$codigoproducto'")->row();
-			$infopedido = $this->dbinfo->query("SELECT * FROM pedidos WHERE folio = '".$producto["folio"]."'")->row();
+			$infocategoria = $categoriasMap[$producto['clasificacion']];
+			$infoproducto = $productosMap[$producto['codigoproducto']];
+			$infopedido = $pedidosMap[$producto['folio']];
 
 			$producto["idpedido"] = $infopedido->id;
 			$producto["iditem"] = $infoproducto->id;
@@ -2640,30 +3244,107 @@ public function getActualizarFecha2(){
 			unset($producto["clasificacion"]);
 			unset($producto["folio"]);
 
-			// Buscar si existe
-			$sql = "SELECT t.id FROM pedidos_detalle t WHERE t.idpedido = ? AND t.iditem = ?";
-			$query = $this->dbinfo->query($sql, [$infopedido->id, $producto["iditem"]]);
+			$claveDetalle = $infopedido->id . '|' . $infoproducto->id;
 
-			/*echo "<pre>";
-			print_r($producto);
-			echo "</pre>";*/
-
-			if ($query->num_rows() > 0)
+			if (!isset($detallesExistentes[$claveDetalle]))
 			{
-				// UPDATE
-				$this->dbinfo->where("idpedido", $infopedido->id);
-				$this->dbinfo->where("iditem", $producto["iditem"]);
-				$this->dbinfo->update("pedidos_detalle", $producto);
+				// INSERT
+
+				$detallesInsertar[] = $producto;
+
+				$insertados++;
+
+
+				/*
+				* Igual que en el flujo secuencial original:
+				* si el mismo par (idpedido, iditem) vuelve a
+				* aparecer dentro del archivo, la siguiente
+				* fila entra como UPDATE.
+				*/
+
+				$detallesExistentes[$claveDetalle] = true;
+			}
+			elseif ($detallesExistentes[$claveDetalle] === true)
+			{
+				/*
+				* Par insertado en esta misma corrida:
+				* UPDATE por (idpedido, iditem) para afectar a la
+				* fila recien insertada, igual que el codigo original.
+				*/
+
+				$detallesActualizarNuevo[] = $producto;
 
 				$actualizados++;
 			}
 			else
 			{
-				// INSERT
-				$this->dbinfo->insert("pedidos_detalle", $producto);
+				// UPDATE (ya existe en la BD y se conoce su id)
 
-				$insertados++;
+				$producto['id'] = $detallesExistentes[$claveDetalle];
+
+				$detallesActualizar[] = $producto;
+
+				$actualizados++;
 			}
+		}
+
+
+		/*
+		* ==========================================================
+		* 7. ESCRITURAS EN BLOQUES DENTRO DE UNA TRANSACCION
+		* ==========================================================
+		*/
+
+		if (!empty($detallesInsertar) || !empty($detallesActualizar) || !empty($detallesActualizarNuevo))
+		{
+
+			$this->dbinfo->trans_start();
+
+
+			if (!empty($detallesInsertar))
+			{
+
+				$bloquesInsertar = array_chunk(
+					$detallesInsertar,
+					500
+				);
+
+				foreach ($bloquesInsertar as $bloque)
+				{
+
+					$this->dbinfo->insert_batch(
+						'pedidos_detalle',
+						$bloque
+					);
+				}
+			}
+
+
+			if (!empty($detallesActualizar))
+			{
+
+				$this->dbinfo->update_batch(
+					'pedidos_detalle',
+					$detallesActualizar,
+					'id',
+					500
+				);
+			}
+
+
+			foreach ($detallesActualizarNuevo as $producto)
+			{
+
+				$this->dbinfo
+					->where('idpedido', $producto['idpedido'])
+					->where('iditem', $producto['iditem'])
+					->update(
+						'pedidos_detalle',
+						$producto
+					);
+			}
+
+			$this->dbinfo->trans_complete();
 		}
 
 		//return "todo bien";
