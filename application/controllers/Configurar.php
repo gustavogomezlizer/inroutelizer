@@ -107,9 +107,21 @@ class Configurar extends CI_Controller {
 
 		if (($archivoimg) and (!empty($archivoimg['name'])))
 		{
-			$ruta_destino_archivo = "assets/images/logos/".GETEMPRESA()."_Logotipo.jpg";
-			$archivo_ok = move_uploaded_file($archivoimg['tmp_name'], $ruta_destino_archivo);
-			$datos["logo"] = base_url($ruta_destino_archivo);
+			$extensionesPermitidas = ['jpg', 'jpeg', 'png', 'gif'];
+			$mimePermitidos = ['image/jpeg', 'image/png', 'image/gif'];
+			$ext = strtolower(pathinfo($archivoimg['name'], PATHINFO_EXTENSION));
+			$mime = mime_content_type($archivoimg['tmp_name']);
+
+			if (in_array($ext, $extensionesPermitidas) && in_array($mime, $mimePermitidos))
+			{
+				$nombreSeguro = GETEMPRESA() . '_Logotipo.' . $ext;
+				$ruta_destino_archivo = 'assets/images/logos/' . $nombreSeguro;
+				$archivo_ok = move_uploaded_file($archivoimg['tmp_name'], $ruta_destino_archivo);
+				if ($archivo_ok)
+				{
+					$datos['logo'] = base_url($ruta_destino_archivo);
+				}
+			}
 		}
 
 		$this->ConfigurarModel->saveNewConfigurar($datos);

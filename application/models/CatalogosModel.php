@@ -167,13 +167,13 @@ class CatalogosModel extends CI_Model {
 
 	public function getUsuarioByUsuario($usuario, $empresa)
 	{
-		$query = $this->db->query("SELECT * FROM usuarios WHERE usuario = '$usuario' AND empresa = '$empresa' ");
+		$query = $this->db->query("SELECT * FROM usuarios WHERE usuario = ? AND empresa = ?", [$usuario, $empresa]);
 		return $query;
 	}
 
 	public function getUsuarioById($idusuario)
 	{
-		$query = $this->db->query("SELECT * FROM usuarios WHERE id = '$idusuario'");
+		$query = $this->db->query("SELECT * FROM usuarios WHERE id = ?", [(int)$idusuario]);
 		return $query;
 	}
 
@@ -495,7 +495,7 @@ class CatalogosModel extends CI_Model {
 
 	public function getClienteByCodigo($pCodigo)
 	{
-		$query = $this->dbinfo->query("SELECT * FROM clientes WHERE status = 1 AND codigo = '$pCodigo'");
+		$query = $this->dbinfo->query("SELECT * FROM clientes WHERE status = 1 AND codigo = ?", [$pCodigo]);
 		return $query->row();
 	}
 
@@ -581,6 +581,7 @@ class CatalogosModel extends CI_Model {
 
 		$datos["status"] = isset($datos["status"]) ? "1" : "0";
 		$datos["audiencia"] = isset($datos["audiencia"]) ? "1" : "0";
+		$datos["fechafinal"] = $datos["fechafinal"]." 23:59:59";
 		$datos["subidobees"] = "0";
 
 		if($id == 0)

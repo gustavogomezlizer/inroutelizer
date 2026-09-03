@@ -9,8 +9,8 @@ class HomeModel extends CI_Model {
 
 	public function VerificacionUsuario($data)
 	{
-		$usuario = $data['usuario'];
-		$clave = $data['clave'];
+		$usuario = isset($data['usuario']) ? $data['usuario'] : '';
+		$clave   = isset($data['clave'])   ? $data['clave']   : '';
 
 		if( isset($data['empresa']) ){
 			$empresa = $data['empresa'];

@@ -16,6 +16,7 @@ class DataTables extends CI_Controller {
 	    }
 	public function index()
 	{
+		VERIFICARSESION();
 		date_default_timezone_set('America/Mazatlan');
 		$fecha1=date('y-m-d');	
 		echo GETNEWCLIENTENAME(2);
@@ -24,6 +25,7 @@ class DataTables extends CI_Controller {
 
 /*INICIA SECCION DE CATEGORIAS*/
 	public function dataClientes(){
+		VERIFICARSESION();
 					/* Database connection start */
 			$servername = "lizer.com.mx";
 			$username = "lizer_programa";

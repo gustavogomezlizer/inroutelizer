@@ -419,14 +419,17 @@ class ModuloLiquidacionModel extends CI_Model {
 
 	public function getInfoEmpresa($empresa)
 	{
-		$consulta = "SELECT * FROM empresas WHERE idCliente = '$empresa'";
-		$query = $this->db->query($consulta);
+		$consulta = "SELECT * FROM empresas WHERE idCliente = ?";
+		$query = $this->db->query($consulta, [$empresa]);
 		return $query;
 	}
 
 	public function postLogin($post)
 	{
-		$query = $this->db->query("SELECT * FROM usuarios WHERE empresa = '$post[idcliente]' AND usuario = '$post[usuario]' AND clave = '$post[password]'");
+		$query = $this->db->query(
+			"SELECT * FROM usuarios WHERE empresa = ? AND usuario = ? AND clave = ?",
+			[$post['idcliente'], $post['usuario'], $post['password']]
+		);
 		return $query;
 	}
 

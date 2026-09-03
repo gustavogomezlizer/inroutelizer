@@ -180,14 +180,20 @@ $nuevo=VERIFICARPERFILFUNCION("Catalogos","nuevaCategorias",$this->session->user
 
 	window.onload = function()
 	{
-		cargarTablaProductos();
+		var fp = new FiltrosPersistentes('cat_reparto', ['#cmbFiltroSucursal']);
+		fp.restaurar(function() {
+			cargarTablaProductos();
+		});
 	}
 
-	$(".btnActualizar").click(function(event) {						
+	var _fpCatReparto = new FiltrosPersistentes('cat_reparto', ['#cmbFiltroSucursal']);
+
+	$(".btnActualizar").click(function(event) {
 		location.reload();
 	});
 
 	$("#cmbFiltroSucursal").on("change", function(){
+		_fpCatReparto.guardar();
 		cargarTablaProductos();
 	});
 
@@ -217,6 +223,7 @@ $nuevo=VERIFICARPERFILFUNCION("Catalogos","nuevaCategorias",$this->session->user
 					"pageLength": 50,
 					"lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
 					"order": [[0,"asc"]],
+					"stateSave": true,
 					"aaData": datos,
 					"columns": [
 						{ "data": "sucursal_nombre" },

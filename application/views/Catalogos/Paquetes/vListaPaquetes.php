@@ -125,8 +125,13 @@ $nuevo=VERIFICARPERFILFUNCION("Catalogos","nuevoProducto",$this->session->userda
 
 	window.onload = function()
 	{
-		cargarTablaProductos();
+		var fp = new FiltrosPersistentes('cat_paquetes', ['#cmbEstatus']);
+		fp.restaurar(function() {
+			cargarTablaProductos();
+		});
 	}
+
+	var _fpCatPaquetes = new FiltrosPersistentes('cat_paquetes', ['#cmbEstatus']);
 
 	$(".verProducto1").click(function(event) {					
 		var id=$(this).attr("id").replace("VER1","");
@@ -165,6 +170,7 @@ $nuevo=VERIFICARPERFILFUNCION("Catalogos","nuevoProducto",$this->session->userda
 
 	$("#cmbEstatus").on("change", function()
 	{
+		_fpCatPaquetes.guardar();
 		if($(this).val() == "TODOS")
 		{
 			myTable.column(i_activo).search('').draw();
@@ -192,8 +198,7 @@ $nuevo=VERIFICARPERFILFUNCION("Catalogos","nuevoProducto",$this->session->userda
 					},
 					"pageLength": 50,
 					"lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
-					"order": [[0,"asc"]],
-					"aaData": datos,
+					"order": [[0,"asc"]],					"stateSave": true,					"aaData": datos,
 					"columns": [
 						{ "data": "codigo" },
 						{ "data": "codigobarras" },

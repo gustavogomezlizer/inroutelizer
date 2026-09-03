@@ -628,3 +628,51 @@ function DecimalesMiles(pElemento, pDecimals)
 function replaceAll(str, find, replace) {
         return str.replace(new RegExp(find, 'g'), replace);
 }
+
+/**
+ * FiltrosPersistentes — guarda y restaura filtros de listados usando localStorage.
+ *
+ * Uso:
+ *   var fp = new FiltrosPersistentes('modulo_pedidos', ['#txtFInicio','#txtFFinal','#cmbTipo','#cmbSucursal']);
+ *   fp.guardar();           // llamar al hacer clic en "Aplicar"
+ *   fp.restaurar(callback); // llamar al cargar la página; callback se ejecuta después de restaurar
+ */
+function FiltrosPersistentes(modulo, campos) {
+    this.key = 'filtros_' + modulo;
+    this.campos = campos;
+
+    this.guardar = function() {
+        var valores = {};
+        for (var i = 0; i < this.campos.length; i++) {
+            var el = $(this.campos[i]);
+            if (el.length) {
+                valores[this.campos[i]] = el.val();
+            }
+        }
+        try {
+            localStorage.setItem(this.key, JSON.stringify(valores));
+        } catch(e) {}
+    };
+
+    this.restaurar = function(callback) {
+        var self = this;
+        try {
+            var raw = localStorage.getItem(this.key);
+            if (!raw) { if (typeof callback === 'function') callback(false); return; }
+            var valores = JSON.parse(raw);
+            for (var campo in valores) {
+                if (valores.hasOwnProperty(campo)) {
+                    var el = $(campo);
+                    if (el.length && valores[campo] !== null) {
+                        el.val(valores[campo]);
+                    }
+                }
+            }
+        } catch(e) {}
+        if (typeof callback === 'function') callback(true);
+    };
+
+    this.limpiar = function() {
+        try { localStorage.removeItem(this.key); } catch(e) {}
+    };
+}

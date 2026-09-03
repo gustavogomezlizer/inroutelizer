@@ -262,8 +262,31 @@ $this->load->view("vHead",$data); ?>
 
 	window.onload = function()
 	{
-		$("#cmbSucursal").change();
-		$("#btnAplicar").click();
+		var fp = new FiltrosPersistentes('visitas', ['#txtFInicio','#txtFFinal','#cmbSucursal','#cmbRuta','#cmbUsuario']);
+
+		fp.restaurar(function(habia) {
+			var idSucursal = $("#cmbSucursal").val();
+			if (idSucursal && idSucursal !== "0") {
+				var rutaGuardada    = null;
+				var usuarioGuardado = null;
+				try {
+					var raw = localStorage.getItem('filtros_visitas');
+					if (raw) { var vals = JSON.parse(raw); rutaGuardada = vals['#cmbRuta'] || null; usuarioGuardado = vals['#cmbUsuario'] || null; }
+				} catch(e) {}
+				var ajaxRuta = $.post("<?php echo CCATALOGOS('createComboRutas');?>", {sucursal: idSucursal}, function(data){
+					$("#cmbRuta").html(data);
+					if (rutaGuardada) $("#cmbRuta").val(rutaGuardada);
+				});
+				var ajaxUsuario = $.post("<?php echo CCATALOGOS('createComboAgente');?>", {sucursal: idSucursal}, function(data){
+					$("#cmbUsuario").html(data);
+					if (usuarioGuardado) $("#cmbUsuario").val(usuarioGuardado);
+				});
+				$.when(ajaxRuta, ajaxUsuario).done(function() { $("#btnAplicar").trigger("click"); });
+			} else {
+				$("#cmbSucursal").trigger("change");
+				$("#btnAplicar").trigger("click");
+			}
+		});
 	}
 
 	var myTable = 
@@ -293,7 +316,10 @@ $this->load->view("vHead",$data); ?>
 		});
 	});
 
+	var _fpVisitas = new FiltrosPersistentes('visitas', ['#txtFInicio','#txtFFinal','#cmbSucursal','#cmbRuta','#cmbUsuario']);
+
 	$("#btnAplicar").on("click", function(){
+		_fpVisitas.guardar();
 		cargarTablaProductos($("#txtFInicio").val(), $("#txtFFinal").val(), $("#cmbTipo").val(), $("#cmbSucursal").val(), $("#cmbRuta").val(), $("#cmbUsuario").val());
 	});
 

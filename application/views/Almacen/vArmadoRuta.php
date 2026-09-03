@@ -140,9 +140,14 @@ $this->load->view("vHead",$data); ?>
 
 	window.onload = function()
 	{
+		var fp = new FiltrosPersistentes('armado_ruta', ['#cmbSucursal','#txtFecha']);
+		fp.restaurar(function() {});
 	}
 
+	var _fpArmadoRuta = new FiltrosPersistentes('armado_ruta', ['#cmbSucursal','#txtFecha']);
+
 	$("#btnAplicar").on("click", function(){
+		_fpArmadoRuta.guardar();
 		var idsucursal = $("#cmbSucursal").val();
 		var fecha = $("#txtFecha").val();
 

@@ -1559,13 +1559,6 @@ public function getModulos()
 		$time = strtotime($data["fecha_inicio"]);
 		$periodo = date('Ym', $time);
 
-		$impuesto = "p.ieps";
-
-		if(GETEMPRESA() == "20240617")
-		{
-			$impuesto = "p.iva";
-		}
-
 		if($data["sucursal"] == "0")
 		{
 			$query = $this->dbinfo->query("SELECT datos.nombre_sucursal,
@@ -1581,7 +1574,7 @@ public function getModulos()
 			SUM(datos.cantidad_real * datos.precio_simpuesto) AS venta_simpuesto,
 			SUM(datos.cantidad_real * datos.costouni_simpuesto) AS costo_simpuesto
 			FROM(
-			SELECT p.nombre_sucursal, p.idsucursal, p.iditem, p.tipo, IF(tipo='preventa', (cantidad_entregado - cantidad_rechazado), (cantidad_entregado - cantidad_rechazado) * -1) AS cantidad_real, IF($impuesto = 0, 0, (($impuesto/100)+1)) AS ieps2, precio, IF($impuesto = 0, precio, (precio / (SELECT ieps2))) AS precio_simpuesto, costo, IF($impuesto = 0, costo, (costo / (SELECT ieps2))) AS costouni_simpuesto,
+			SELECT p.nombre_sucursal, p.idsucursal, p.iditem, p.tipo, IF(tipo='preventa', (cantidad_entregado - cantidad_rechazado), (cantidad_entregado - cantidad_rechazado) * -1) AS cantidad_real, precio, (precio / ((1 + COALESCE(p.iva,0)/100) * (1 + COALESCE(p.ieps,0)/100))) AS precio_simpuesto, costo, (costo / ((1 + COALESCE(p.iva,0)/100) * (1 + COALESCE(p.ieps,0)/100))) AS costouni_simpuesto,
 			(SELECT cp.proveedor FROM cat_productos cp WHERE cp.id = p.iditem) AS proveedor
 			FROM vwInformacionGeneralPedidos p
 			WHERE p.status_principal = 1 AND p.status_detalle = 1 AND p.corte > 0 AND p.fecha BETWEEN '$data[fecha_inicio]' AND '$data[fecha_final]' AND FIND_IN_SET(p.tipo, '$data[tipo]'))
@@ -1604,7 +1597,7 @@ public function getModulos()
 			SUM(datos.cantidad_real * datos.precio_simpuesto) AS venta_simpuesto,
 			SUM(datos.cantidad_real * datos.costouni_simpuesto) AS costo_simpuesto
 			FROM(
-			SELECT p.nombre_sucursal, p.idsucursal, p.iditem, p.ruta, p.ruta_nombre, p.tipo, IF(tipo='preventa', (cantidad_entregado - cantidad_rechazado), (cantidad_entregado - cantidad_rechazado) * -1) AS cantidad_real, IF($impuesto = 0, 0, (($impuesto/100)+1)) AS ieps2, precio, IF($impuesto = 0, precio, (precio / (SELECT ieps2))) AS precio_simpuesto, costo, IF($impuesto = 0, costo, (costo / (SELECT ieps2))) AS costouni_simpuesto,
+			SELECT p.nombre_sucursal, p.idsucursal, p.iditem, p.ruta, p.ruta_nombre, p.tipo, IF(tipo='preventa', (cantidad_entregado - cantidad_rechazado), (cantidad_entregado - cantidad_rechazado) * -1) AS cantidad_real, precio, (precio / ((1 + COALESCE(p.iva,0)/100) * (1 + COALESCE(p.ieps,0)/100))) AS precio_simpuesto, costo, (costo / ((1 + COALESCE(p.iva,0)/100) * (1 + COALESCE(p.ieps,0)/100))) AS costouni_simpuesto,
 			(SELECT cp.proveedor FROM cat_productos cp WHERE cp.id = p.iditem) AS proveedor
 			FROM vwInformacionGeneralPedidos p
 			WHERE p.status_principal = 1 AND p.status_detalle = 1 AND p.fecha BETWEEN '$data[fecha_inicio]' AND '$data[fecha_final]' AND FIND_IN_SET(p.tipo, '$data[tipo]'))
@@ -1730,13 +1723,6 @@ public function getModulos()
 	{
 		setlocale(LC_MONETARY, 'es_MX');
 
-		$impuesto = "p.ieps";
-
-		if(GETEMPRESA() == "02271106")
-		{
-			$impuesto = "p.iva";
-		}
-
 		$data["fecha_inicio"] = "$data[mes1]-01";
 		$data["fecha_final"] = "$data[mes2]-31";
 
@@ -1806,7 +1792,7 @@ public function getModulos()
 			SUM(datos.cantidad_real * datos.precio_simpuesto) AS venta_simpuesto,
 			SUM(datos.cantidad_real * datos.costouni_simpuesto) AS costo_simpuesto
 			FROM(
-			SELECT p.nombre_sucursal, p.idsucursal, p.iditem, p.tipo, IF(tipo='preventa', (cantidad_entregado - cantidad_rechazado), (cantidad_entregado - cantidad_rechazado) * -1) AS cantidad_real, IF($impuesto = 0, 0, (($impuesto/100)+1)) AS ieps2, precio, IF($impuesto = 0, precio, (precio / (SELECT ieps2))) AS precio_simpuesto, costo, IF($impuesto = 0, costo, (costo / (SELECT ieps2))) AS costouni_simpuesto,
+			SELECT p.nombre_sucursal, p.idsucursal, p.iditem, p.tipo, IF(tipo='preventa', (cantidad_entregado - cantidad_rechazado), (cantidad_entregado - cantidad_rechazado) * -1) AS cantidad_real, precio, (precio / ((1 + COALESCE(p.iva,0)/100) * (1 + COALESCE(p.ieps,0)/100))) AS precio_simpuesto, costo, (costo / ((1 + COALESCE(p.iva,0)/100) * (1 + COALESCE(p.ieps,0)/100))) AS costouni_simpuesto,
 			(SELECT cp.proveedor FROM cat_productos cp WHERE cp.id = p.iditem) AS proveedor
 			FROM vwInformacionGeneralPedidos p
 			WHERE p.idsucursal = '$value->id' AND p.status_principal = 1 AND p.status_detalle = 1 AND p.fecha BETWEEN '$data[fecha_inicio]' AND '$data[fecha_final]' AND FIND_IN_SET(p.tipo, 'preventa'))

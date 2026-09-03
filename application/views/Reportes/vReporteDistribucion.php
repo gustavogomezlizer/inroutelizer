@@ -149,9 +149,11 @@ $this->load->view("vHead",$data); ?>
 
 	window.onload = function()
 	{
-		$("#cmbSucursal").change();
-		$("#btnAplicar").click();
+		var fp = new FiltrosPersistentes('distribucion', ['#txtFechaDe','#txtFechaA','#cmbSucursal','#cmbClasificacion','#cmbNegocio']);
+		fp.restaurar(function() { $("#cmbSucursal").trigger("change"); $("#btnAplicar").trigger("click"); });
 	}
+
+	var _fpDistribucion = new FiltrosPersistentes('distribucion', ['#txtFechaDe','#txtFechaA','#cmbSucursal','#cmbClasificacion','#cmbNegocio']);
 
 	$('.select2').css('width','500px').select2({allowClear:false})
 	$('#select2-multiple-style .btn').on('click', function(e){
@@ -189,6 +191,7 @@ $this->load->view("vHead",$data); ?>
 	});
 
 	$("#btnAplicar").on("click", function(){
+		_fpDistribucion.guardar();
 		cargarDistribucion($("#txtFechaDe").val(), $("#txtFechaA").val(), $("#cmbSucursal").val(), $("#cmbClasificacion").val(), $("#cmbNegocio").val());
 	});
 

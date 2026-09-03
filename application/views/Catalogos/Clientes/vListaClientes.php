@@ -148,10 +148,16 @@ $clientesMapa = VERIFICARPERFILFUNCION("Catalogos","clientesMapa",$this->session
 
 		window.onload = function()
 		{
-			cargarTableClientes($("#cmbFiltroSucursal").val());
+			var fp = new FiltrosPersistentes('cat_clientes', ['#cmbFiltroSucursal']);
+			fp.restaurar(function() {
+				cargarTableClientes($("#cmbFiltroSucursal").val());
+			});
 		}
 
+		var _fpCatClientes = new FiltrosPersistentes('cat_clientes', ['#cmbFiltroSucursal']);
+
 		$("#cmbFiltroSucursal").on("change", function(){
+			_fpCatClientes.guardar();
 			cargarTableClientes($("#cmbFiltroSucursal").val());
 		});
 
@@ -183,8 +189,7 @@ $clientesMapa = VERIFICARPERFILFUNCION("Catalogos","clientesMapa",$this->session
 								},
 								"pageLength": 50,
 								"lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
-								"order": [[0,"asc"]],
-								"aaData": datos,
+								"order": [[0,"asc"]],							"stateSave": true,								"aaData": datos,
 								"columns": [
 									{ "data": "codigo" },
 									{ "data": "nombre" },

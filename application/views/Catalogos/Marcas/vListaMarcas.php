@@ -131,8 +131,7 @@ $nuevo=VERIFICARPERFILFUNCION("Catalogos","nuevaCategorias",$this->session->user
 					},
 					"pageLength": 50,
 					"lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
-					"order": [[0,"asc"]],
-					"aaData": datos,
+					"order": [[0,"asc"]],						"stateSave": true,					"aaData": datos,
 					"columns": [
 						{ "data": "idmarca" },
 						{ "data": "nombre" },

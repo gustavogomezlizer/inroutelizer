@@ -11,13 +11,12 @@ class AppModel extends CI_Model {
 
 	public function getusuario2($user,$pass,$company)
 	{
-		//$consulta="SELECT * FROM usuarios WHERE STATUS = 1 AND vendedor = 1 AND usuario = '$user' AND clave = '$pass' AND empresa = '$company' LIMIT 1";
 		$consulta="SELECT usuarios.*,empresas.`nombrecorto`, empresas.`logo` AS logo, empresas.distanciacliente, empresas.ws, empresas.utiliza_impresora, empresas.validacion_inventario
 		FROM usuarios
 		INNER JOIN empresas ON usuarios.`empresa` = empresas.`idCliente`
-		WHERE usuarios.STATUS = 1 AND usuarios.vendedor = 1 AND empresas.status = 1 AND usuarios.usuario = '$user' AND usuarios.clave = '$pass' AND usuarios.empresa = '$company' 
+		WHERE usuarios.STATUS = 1 AND usuarios.vendedor = 1 AND empresas.status = 1 AND usuarios.usuario = ? AND usuarios.clave = ? AND usuarios.empresa = ?
 		LIMIT 1";
-		$query = $this->db->query($consulta);
+		$query = $this->db->query($consulta, [$user, $pass, $company]);
 		return $query->result();
 	}
 
@@ -27,9 +26,9 @@ class AppModel extends CI_Model {
 		'800' AS limite_depositar
 		FROM usuarios
 		INNER JOIN empresas ON usuarios.`empresa` = empresas.`idCliente`
-		WHERE usuarios.status = 1 AND usuarios.perfil = 5 AND usuarios.usuario = '$user' AND usuarios.clave = '$pass' AND usuarios.empresa = '$company'
+		WHERE usuarios.status = 1 AND usuarios.perfil = 5 AND usuarios.usuario = ? AND usuarios.clave = ? AND usuarios.empresa = ?
 		LIMIT 1";
-		$query = $this->db->query($consulta);
+		$query = $this->db->query($consulta, [$user, $pass, $company]);
 		return $query->result();
 	}
 
@@ -910,6 +909,11 @@ class AppModel extends CI_Model {
 		INNER JOIN conf_consecutivos ON cat_sucursales.id=conf_consecutivos.sucursal WHERE cat_sucursales.id = '$idSucursal'";
 
 		$query = $this->dbinfo->query($consulta)->row();
+
+		if (!$query) {
+			return '';
+		}
+
 		$idConf = $query->idConf;
 		$fecha = $query->dia;
 

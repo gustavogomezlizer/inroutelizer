@@ -56,9 +56,7 @@
 		<script src="<?php echo RUTAFOLDERASSETS("js/select2.min.js"); ?>"></script>
 		<script src="<?php echo RUTAFOLDERASSETS("js/jquery.raty.min.js"); ?>"></script>
 		<script src="<?php echo RUTAFOLDERASSETS("js/jquery-typeahead.js"); ?>"></script>
-		<script>
-		
-	</script>
+
 
 
 

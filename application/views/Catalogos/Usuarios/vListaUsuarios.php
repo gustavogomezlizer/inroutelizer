@@ -324,10 +324,16 @@ $liberar=VERIFICARPERFILFUNCION("Catalogos","liberaUsuario",$this->session->user
 
 	window.onload = function()
 	{
-		cargarTableUsuarios($("#cmbFiltroSucursal").val());
+		var fp = new FiltrosPersistentes('cat_usuarios', ['#cmbFiltroSucursal']);
+		fp.restaurar(function() {
+			cargarTableUsuarios($("#cmbFiltroSucursal").val());
+		});
 	}
 
+	var _fpCatUsuarios = new FiltrosPersistentes('cat_usuarios', ['#cmbFiltroSucursal']);
+
 	$("#cmbFiltroSucursal").on("change", function(){
+		_fpCatUsuarios.guardar();
 		cargarTableUsuarios($("#cmbFiltroSucursal").val());
 	});
 
@@ -348,6 +354,7 @@ $liberar=VERIFICARPERFILFUNCION("Catalogos","liberaUsuario",$this->session->user
 					"pageLength": 50,
 					"lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
 					"order": [[0,"asc"]],
+					"stateSave": true,
 					"aaData": datos,
 					"columns": [
 						{ "data": "usuario" },

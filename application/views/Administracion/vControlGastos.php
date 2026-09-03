@@ -145,8 +145,11 @@ $this->load->view("vHead", $data); ?>
 
 	window.onload = function()
 	{
-		
+		var fp = new FiltrosPersistentes('gastos', ['#txtPeriodo','#cmbSucursal','#cmbNegocio']);
+		fp.restaurar(function() {});
 	}
+
+	var _fpGastos = new FiltrosPersistentes('gastos', ['#txtPeriodo','#cmbSucursal','#cmbNegocio']);
 
 	$("#btnAplicar").on("click", function(){
 
@@ -160,6 +163,7 @@ $this->load->view("vHead", $data); ?>
 		}
 		else
 		{
+			_fpGastos.guardar();
 			cargarTablaProductos($("#txtPeriodo").val(), $("#cmbSucursal").val(), $("#cmbNegocio").val());
 		}
 	});

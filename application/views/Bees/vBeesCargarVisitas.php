@@ -299,11 +299,7 @@
         uploadBtn.disabled = true;
         showStatus('', 'loading');
 
-        const csrfName = '<?= $this->security->get_csrf_token_name(); ?>';
-        const csrfHash = '<?= $this->security->get_csrf_hash(); ?>';
-
         const payload = {};
-        payload[csrfName] = csrfHash;
         payload['data'] = jsonData;
         payload['filename'] = selectedFile.name;
 

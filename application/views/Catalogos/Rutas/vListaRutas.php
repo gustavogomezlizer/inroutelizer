@@ -269,10 +269,16 @@ $nuevo=VERIFICARPERFILFUNCION("Catalogos","nuevaRuta",$this->session->userdata('
 
 	window.onload = function()
 	{
-		cargarTablaProductos($("#cmbFiltroSucursal").val());
+		var fp = new FiltrosPersistentes('cat_rutas', ['#cmbFiltroSucursal']);
+		fp.restaurar(function() {
+			cargarTablaProductos($("#cmbFiltroSucursal").val());
+		});
 	}
 
+	var _fpCatRutas = new FiltrosPersistentes('cat_rutas', ['#cmbFiltroSucursal']);
+
 	$("#cmbFiltroSucursal").on("change", function(){
+		_fpCatRutas.guardar();
 		cargarTablaProductos($("#cmbFiltroSucursal").val());
 	});
 
@@ -303,6 +309,7 @@ $nuevo=VERIFICARPERFILFUNCION("Catalogos","nuevaRuta",$this->session->userdata('
 					"pageLength": 50,
 					"lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
 					"order": [[0,"asc"]],
+					"stateSave": true,
 					"aaData": datos,
 					"columns": [
 						{ "data": "ruta" },

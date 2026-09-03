@@ -192,9 +192,9 @@ class Reportes extends CI_Controller {
 
 	public function getAcciones()
 	{
-		$idUsuario = $_POST['idUsuario'];
-		$fIni = $_POST['fIni'];
-		$fFin = $_POST['fFin'];
+		$idUsuario = $this->input->post('idUsuario');
+		$fIni = $this->input->post('fIni');
+		$fFin = $this->input->post('fFin');
 		$acciones = $this->ReportesModel->getPedidosVisitas($idUsuario,$fIni,$fFin);
 		echo $acciones;
 	}
@@ -277,12 +277,17 @@ class Reportes extends CI_Controller {
 		$this->load->library('excel');
 
 		$path_parts = pathinfo($_FILES["archivo"]["name"]);
-		$extension = $path_parts['extension'];
+		$extension = strtolower($path_parts['extension']);
+		$mimePermitidos = [
+			'application/vnd.ms-excel',
+			'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+			'application/octet-stream',
+		];
+		$mimeReal = mime_content_type($_FILES["archivo"]["tmp_name"]);
 
-		$fecha = str_replace('-','', $_POST["fecha"]);
-		//$fecha = substr($fecha, 2);
+		$fecha = str_replace('-','', $this->input->post("fecha"));
 
-		if (strpos($extension, 'xls') !== false)
+		if (in_array($extension, ['xls', 'xlsx']) && in_array($mimeReal, $mimePermitidos))
 		{
 			$objPHPExcel = PHPExcel_IOFactory::load($_FILES['archivo']['tmp_name']);
 			//$objPHPExcel = PHPExcel_IOFactory::load('INVENTARIO.xlsx');
@@ -386,16 +391,20 @@ class Reportes extends CI_Controller {
 		$message = "Todo bien";		
 
 		$this->load->library('excel');
-		$FILE_NEW = $_FILES["archivo"]["tmp_name"];//"excel/INVENTARIO_NEW.xlsx";
+		$FILE_NEW = $_FILES["archivo"]["tmp_name"];
 
 		/*if(move_uploaded_file($_FILES["archivo"]["tmp_name"], "hola.xlsx"))
 		{*/
-			//$path_parts = pathinfo($_FILES["archivo"]["name"]);
 			$path_parts = pathinfo($_FILES["archivo"]["name"]);
-			$extension = $path_parts['extension'];
+			$extension = strtolower($path_parts['extension']);
+			$mimePermitidos = [
+				'application/vnd.ms-excel',
+				'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+				'application/octet-stream',
+			];
+			$mimeReal = mime_content_type($FILE_NEW);
 
-			//$fecha = str_replace('-','', $_POST["fecha"]);
-			if (strpos($extension, 'xls') !== false)
+			if (in_array($extension, ['xls', 'xlsx']) && in_array($mimeReal, $mimePermitidos))
 			{
 				//$objPHPExcel = PHPExcel_IOFactory::load($_FILES['archivo']['tmp_name']);			
 				//$objPHPExcel = PHPExcel_IOFactory::load($FILE_NEW);

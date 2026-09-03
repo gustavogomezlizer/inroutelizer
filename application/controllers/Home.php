@@ -52,9 +52,8 @@ class Home extends CI_Controller {
 
 	
 	public function cambiarClave(){
-		//print_r($_POST);
-		$user=$_POST['user'];
-		$clave1=$_POST['clave1'];
+		$user  = $this->input->post('user');
+		$clave1 = $this->input->post('clave1');
 		
 		$this->HomeModel->changeClave($user,$clave1);
 	}

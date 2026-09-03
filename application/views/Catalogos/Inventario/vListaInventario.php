@@ -129,10 +129,16 @@ $liberar=VERIFICARPERFILFUNCION("Catalogos","liberaUsuario",$this->session->user
 
 	window.onload = function()
 	{
-		cargarTableUsuarios($("#cmbFiltroSucursal").val());
+		var fp = new FiltrosPersistentes('cat_inventario', ['#cmbFiltroSucursal']);
+		fp.restaurar(function() {
+			cargarTableUsuarios($("#cmbFiltroSucursal").val());
+		});
 	}
 
+	var _fpCatInventario = new FiltrosPersistentes('cat_inventario', ['#cmbFiltroSucursal']);
+
 	$("#cmbFiltroSucursal").on("change", function(){
+		_fpCatInventario.guardar();
 		cargarTableUsuarios($("#cmbFiltroSucursal").val());
 	});
 
@@ -152,8 +158,7 @@ $liberar=VERIFICARPERFILFUNCION("Catalogos","liberaUsuario",$this->session->user
 					},
 					"pageLength": 50,
 					"lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
-					"order": [[0,"asc"]],
-					"aaData": datos,
+					"order": [[0,"asc"]],				"stateSave": true,					"aaData": datos,
 					"columns": [
 						{ "data": "fecha_registro" },
 						{ "data": "sucursal" },
