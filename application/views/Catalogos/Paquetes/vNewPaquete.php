@@ -448,11 +448,13 @@ $perfiles = array("ADMINISTRADOR", "SISTEMAS");
 						items_sucursal[x].idpaquete = data.trim();
 					}
 
-					$.post("<?php echo LINKPROYECTO('Catalogos/saveComponentesPaquete') ?>", datos, function(data){});
-					$.post("<?php echo LINKPROYECTO('Catalogos/savePaquetesSucursal') ?>", {items_sucursal}, function(data){});
-					$.post("<?php echo LINKPROYECTO('Catalogos/savePaquetesAudiencia') ?>", {idpaquete: data.trim(), codigo, items_audiencia: JSON.stringify(items_audiencia)}, function(data){});
+					var pComp = $.post("<?php echo LINKPROYECTO('Catalogos/saveComponentesPaquete') ?>", datos);
+					var pSuc = $.post("<?php echo LINKPROYECTO('Catalogos/savePaquetesSucursal') ?>", {items_sucursal});
+					var pAud = $.post("<?php echo LINKPROYECTO('Catalogos/savePaquetesAudiencia') ?>", {idpaquete: data.trim(), codigo, items_audiencia: JSON.stringify(items_audiencia)});
 
-					window.location = "<?php echo LINKPROYECTO('Paquetes') ?>";
+					$.when(pComp, pSuc, pAud).done(function(){
+						window.location = "<?php echo LINKPROYECTO('Paquetes') ?>";
+					});
 				}else{
 					dialogAvisoGlobal.show("Ocurrio un error al guardar el producto", "alert alert-danger");
 				}

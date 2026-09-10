@@ -581,7 +581,7 @@ class CatalogosModel extends CI_Model {
 
 		$datos["status"] = isset($datos["status"]) ? "1" : "0";
 		$datos["audiencia"] = isset($datos["audiencia"]) ? "1" : "0";
-		$datos["fechafinal"] = $datos["fechafinal"]." 23:59:59";
+		$datos["fechafinal"] = (isset($datos["fechafinal"]) && $datos["fechafinal"] != "") ? $datos["fechafinal"]." 23:59:59" : "";
 		$datos["subidobees"] = "0";
 
 		if($id == 0)
