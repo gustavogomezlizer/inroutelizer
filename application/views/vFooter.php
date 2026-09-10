@@ -57,6 +57,40 @@
 		<script src="<?php echo RUTAFOLDERASSETS("js/jquery.raty.min.js"); ?>"></script>
 		<script src="<?php echo RUTAFOLDERASSETS("js/jquery-typeahead.js"); ?>"></script>
 
+		<!-- Fix: destroy de DataTables cuando la tabla no ha terminado de inicializarse
+		     evita "Cannot read properties of null (reading 'parentNode')" -->
+		<script type="text/javascript">
+			if (window.jQuery && $.fn.DataTable && $.fn.DataTable.Api) {
+				console.log("[vFooter] fix destroy DataTables API activo");
+				(function () {
+					var destroyOriginal = $.fn.DataTable.Api.prototype.destroy;
+					$.fn.DataTable.Api.prototype.destroy = function (remove) {
+						var api = this;
+						try {
+							return destroyOriginal.apply(api, arguments);
+						} catch (e) {
+							var settings = $.fn.dataTable.settings;
+							var ctx = api.context || [];
+							for (var i = 0; i < ctx.length; i++) {
+								var idx = $.inArray(ctx[i], settings);
+								if (idx !== -1) {
+									var o = settings[idx];
+									if (o && o.nTable) {
+										$(o.nTable).off('.DT');
+										if (o.nTableWrapper) {
+											$(o.nTableWrapper).find(':not(tbody *)').off('.DT');
+										}
+									}
+									settings.splice(idx, 1);
+								}
+							}
+							return api;
+						}
+					};
+				})();
+			}
+		</script>
+
 
 
 

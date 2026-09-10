@@ -309,6 +309,11 @@ class Catalogos  extends CI_Controller {
 	{
 		$datos = $this->input->post();
 
+		if(isset($datos["items_audiencia"]))
+		{
+			$datos["items_audiencia"] = json_decode($datos["items_audiencia"], true);
+		}
+
 		echo $this->CatalogosModel->savePaquetesAudiencia($datos);
 	}
 

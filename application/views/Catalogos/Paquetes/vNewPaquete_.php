@@ -450,7 +450,7 @@ $perfiles = array("ADMINISTRADOR", "SISTEMAS");
 
 					$.post("<?php echo LINKPROYECTO('Catalogos/saveComponentesPaquete') ?>", datos, function(data){});
 					$.post("<?php echo LINKPROYECTO('Catalogos/savePaquetesSucursal') ?>", {items_sucursal}, function(data){});
-					$.post("<?php echo LINKPROYECTO('Catalogos/savePaquetesAudiencia') ?>", {idpaquete: data.trim(), codigo, items_audiencia}, function(data){});
+					$.post("<?php echo LINKPROYECTO('Catalogos/savePaquetesAudiencia') ?>", {idpaquete: data.trim(), codigo, items_audiencia: JSON.stringify(items_audiencia)}, function(data){});
 
 					window.location = "<?php echo LINKPROYECTO('Paquetes') ?>";
 				}else{
